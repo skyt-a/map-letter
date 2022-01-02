@@ -8,7 +8,6 @@ import { GoogleMap } from "../components/googleMap/GoogleMap";
 
 export const getStaticProps: GetStaticProps = async () => {
   const feed = await prisma.post.findFirst();
-  console.log(feed);
   return { props: { feed: [feed] } };
 };
 
@@ -18,7 +17,7 @@ type Props = {
 
 const Blog: React.FC<Props> = (props) => {
   return (
-    <GoogleMapLoadScript>
+    <GoogleMapLoadScript {...props}>
       <GoogleMap />
     </GoogleMapLoadScript>
   );
