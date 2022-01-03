@@ -9,11 +9,14 @@ generator client {
 
 model Post {
   id        Int     @default(autoincrement()) @id
-  title     String
+  title     String?
   content   String?
+  publishedAt  String
   published Boolean @default(false)
   author    User?   @relation(fields: [authorId], references: [id])
   authorId  Int?
+  latitude  Float
+  longitude Float
 }
 
 model User {
