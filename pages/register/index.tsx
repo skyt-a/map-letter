@@ -8,77 +8,64 @@ import prisma from "../../lib/prisma";
 import { GetServerSideProps } from "next";
 import { format } from "date-fns";
 import { GoogleMapLoadScript } from "../../components/googleMap/GoogleMapLoadScript";
+import { RegisterPopup } from "../../components/register/RegisterPopup";
+import { MarkdownEditor } from "../../components/markdown/MarkdownEditor";
+import { useQuery } from "react-query";
+import { fetchPost } from "../../fetcher/fetchPost";
 
 type RegisterMapProps = { posts: Post[] };
 
 const RegisterMap: FC<RegisterMapProps> = (props) => {
-  const [markerPosition, setMarkerPosition] = useState<LatLng>();
+  const [registerMarkerPosition, setMarkerPosition] = useState<LatLng>();
+  const [selectedPost, setSelectedPost] = useState<Post>();
+  const [content, setContent] = useState("");
+  const { data, isLoading } = useQuery<[Post[], LatLng]>("posts", fetchPost);
+  const [posts, nowPosition] = data ?? [];
   const onClickMap = useCallback((param) => {
     const { lat, lng } = param.latLng;
     setMarkerPosition({ lat: lat(), lng: lng() });
   }, []);
-  const register = useCallback(
-    async (e) => {
-      e.preventDefault();
-      if (!markerPosition) {
-        return;
-      }
-      try {
-        const body = {
-          latitude: markerPosition.lat,
-          longitude: markerPosition.lng,
-          publishedAt: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-        };
-        await fetch("/api/post/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body),
-        });
-      } catch (error) {
-        console.error(error);
-      }
+  const onClickMarker = useCallback(
+    (post: Post) => (e) => {
+      e.domEvent.stopPropagation();
+      setMarkerPosition({ lat: post.latitude, lng: post.longitude });
+      setContent(post.content);
+      setSelectedPost(post);
     },
-    [markerPosition]
+    []
   );
+  const onCancel = useCallback(() => {
+    setMarkerPosition(undefined);
+    setSelectedPost(undefined);
+  }, []);
+
+  if (isLoading) {
+    return <div>Loading....</div>;
+  }
+
   return (
     <GoogleMapLoadScript {...props}>
-      <GoogleMap onClick={onClickMap}>
-        {markerPosition && <Marker position={markerPosition} />}
-        {props.posts?.map((post) => (
-          <Marker position={{ lat: post.latitude, lng: post.longitude }} />
+      <GoogleMap onClick={onClickMap} center={nowPosition}>
+        {registerMarkerPosition && <Marker position={registerMarkerPosition} />}
+        {posts?.map((post) => (
+          <Marker
+            key={post.id}
+            position={{ lat: post.latitude, lng: post.longitude }}
+            onClick={onClickMarker(post)}
+          />
         ))}
-        {markerPosition && (
-          <OverlayView
-            position={markerPosition}
-            mapPaneName="overlayMouseTarget"
-          >
-            <div>
-              <button onClick={register} type="button">
-                登録
-              </button>
-            </div>
-          </OverlayView>
-        )}
-        <style jsx>{`
-          div {
-            background-color: #fff;
-            width: 200px;
-            height: 100px;
-            padding: 2rem;
-            z-index: 10;
-          }
-        `}</style>
       </GoogleMap>
+      {registerMarkerPosition && (
+        <RegisterPopup
+          content={content}
+          position={registerMarkerPosition}
+          onCancel={onCancel}
+          selectedPost={selectedPost}
+          setContent={setContent}
+        />
+      )}
     </GoogleMapLoadScript>
   );
-};
-
-export const getServerSideProps: GetServerSideProps = async ({ req, res }) => {
-  const posts = await prisma.post.findMany();
-
-  return {
-    props: { posts },
-  };
 };
 
 export default RegisterMap;

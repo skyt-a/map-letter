@@ -1,7 +1,11 @@
 import { GoogleMap, GoogleMapProps } from "@react-google-maps/api";
 import { FC, useCallback, useRef } from "react";
 
-const GoogleMapWrapper: FC<GoogleMapProps> = ({ children, ...rest }) => {
+const GoogleMapWrapper: FC<GoogleMapProps> = ({
+  children,
+  center: thisCenter,
+  ...rest
+}) => {
   const mapRef = useRef();
   const onMapLoad = useCallback((map) => {
     mapRef.current = map;
@@ -9,7 +13,7 @@ const GoogleMapWrapper: FC<GoogleMapProps> = ({ children, ...rest }) => {
   return (
     <GoogleMap
       mapContainerStyle={containerStyle}
-      center={center}
+      center={thisCenter ?? center}
       zoom={17}
       onLoad={onMapLoad}
       {...rest}

@@ -4,13 +4,11 @@ import prisma from "../../../lib/prisma";
 // Required fields in body: title
 // Optional fields in body: content
 export default async function handle(req, res) {
-  const { latitude, longitude, publishedAt, content } = req.body;
+  const { content, id } = req.body;
 
-  const result = await prisma.post.create({
+  const result = await prisma.post.update({
+    where: { id },
     data: {
-      latitude,
-      longitude,
-      publishedAt,
       content,
     },
   });
