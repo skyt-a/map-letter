@@ -12,11 +12,7 @@ type Props = {
 };
 
 const Blog: React.FC<Props> = (props) => {
-  return (
-    <GoogleMapLoadScript {...props}>
-      <RegisterMap />
-    </GoogleMapLoadScript>
-  );
+  return <div></div>;
 };
 
 export default Blog;
