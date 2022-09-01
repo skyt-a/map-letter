@@ -2,16 +2,12 @@ import { Marker } from "@react-google-maps/api";
 import { FC, useCallback, useState } from "react";
 import { LatLng } from "../../types/googleMap";
 import { GoogleMap } from "../../components/googleMap/GoogleMap";
-import { OverlayView } from "@react-google-maps/api";
 import { Post } from "@prisma/client";
-import prisma from "../../lib/prisma";
-import { GetServerSideProps } from "next";
-import { format } from "date-fns";
 import { GoogleMapLoadScript } from "../../components/googleMap/GoogleMapLoadScript";
 import { RegisterPopup } from "../../components/register/RegisterPopup";
-import { MarkdownEditor } from "../../components/markdown/MarkdownEditor";
 import { useQuery } from "react-query";
 import { fetchPost } from "../../api/query/post";
+import { Spinner } from "@chakra-ui/react";
 
 type RegisterMapProps = { posts: Post[] };
 
@@ -40,7 +36,15 @@ const RegisterMap: FC<RegisterMapProps> = (props) => {
   }, []);
 
   if (isLoading) {
-    return <div>Loading....</div>;
+    return (
+      <Spinner
+        thickness="4px"
+        speed="0.65s"
+        emptyColor="gray.200"
+        color="blue.500"
+        size="xl"
+      />
+    );
   }
 
   return (

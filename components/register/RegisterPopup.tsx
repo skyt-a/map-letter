@@ -63,10 +63,26 @@ const RegisterPopup: FC<RegisterPopupProps> = ({
           </StyledFormControl>
           <MarkdownEditor content={content} setContent={setContent} />
           <Action>
-            <StyledButton type="submit">
+            <StyledButton
+              w="80px"
+              fontSize="0.8rem"
+              type="submit"
+              bg="brand.800"
+              color="#fff"
+            >
               {selectedPost === undefined ? "登録" : "更新"}
             </StyledButton>
-            <StyledButton type="button" onClick={onCancel}>
+            <StyledButton
+              w="80px"
+              fontSize="0.8rem"
+              type="button"
+              onClick={onCancel}
+              bg="fff"
+              color="brand.800"
+              border="1px"
+              borderColor="brand.800"
+              ml="8px"
+            >
               キャンセル
             </StyledButton>
           </Action>
@@ -84,6 +100,7 @@ const Wrapper = styled.div`
   height: 100vh;
   background-color: #fff;
   z-index: 10;
+  padding: 14px;
 `;
 
 const Action = styled.div`
