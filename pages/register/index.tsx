@@ -11,7 +11,7 @@ import { GoogleMapLoadScript } from "../../components/googleMap/GoogleMapLoadScr
 import { RegisterPopup } from "../../components/register/RegisterPopup";
 import { MarkdownEditor } from "../../components/markdown/MarkdownEditor";
 import { useQuery } from "react-query";
-import { fetchPost } from "../../fetcher/fetchPost";
+import { fetchPost } from "../../api/query/post";
 
 type RegisterMapProps = { posts: Post[] };
 

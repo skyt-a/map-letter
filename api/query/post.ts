@@ -1,5 +1,5 @@
 import { Post } from "@prisma/client";
-import { LatLng } from "../types/googleMap";
+import { LatLng } from "../../types/googleMap";
 
 export const fetchPost = async () => {
   return new Promise<[Post[], LatLng]>((resolve, reject) => {

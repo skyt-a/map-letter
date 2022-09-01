@@ -1,9 +1,11 @@
-import { Post } from "@prisma/client";
-import { OverlayView } from "@react-google-maps/api";
-import { format } from "date-fns";
 import { FC, useCallback } from "react";
+import { Button, FormControl, FormLabel, Input } from "@chakra-ui/react";
+import { Post } from "@prisma/client";
 import { LatLng } from "../../types/googleMap";
 import { MarkdownEditor } from "../markdown/MarkdownEditor";
+import styled from "@emotion/styled";
+import { useForm } from "react-hook-form";
+import { useMutationOnRegister } from "./hook/useMutationOnRegister";
 
 type RegisterPopupProps = {
   position: LatLng;
@@ -20,91 +22,87 @@ const RegisterPopup: FC<RegisterPopupProps> = ({
   setContent,
   selectedPost,
 }) => {
+  const { handleSubmit, register } = useForm();
+  const [mutationCreate, mutationUpdate] = useMutationOnRegister(onCancel);
   const onRegister = useCallback(
     (e) => {
-      e.preventDefault();
-      e.stopPropagation();
       (async () => {
         if (!position) {
           return;
         }
         try {
           if (selectedPost === undefined) {
-            const body = {
-              latitude: position.lat,
-              longitude: position.lng,
+            await mutationCreate.mutateAsync({
+              title: e.title,
+              lat: position.lat,
+              lng: position.lng,
               content,
-              publishedAt: format(new Date(), "yyyy-MM-dd HH:mm:ss"),
-            };
-            await fetch("/api/post/create", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(body),
             });
           } else {
-            const body = {
+            await mutationUpdate.mutateAsync({
               id: selectedPost.id,
+              title: e.title,
               content,
-            };
-            await fetch("/api/post/update", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(body),
             });
           }
         } catch (error) {
           console.error(error);
-        } finally {
           onCancel();
         }
       })();
     },
-    [position, onCancel, content]
+    [position, onCancel, content, mutationCreate, mutationUpdate]
   );
   return (
     <>
-      <section>
-        <MarkdownEditor content={content} setContent={setContent} />
-        <div>
-          <button
-            type="button"
-            className="p-2 pl-5 pr-5 bg-blue-500 text-gray-100 text-lg rounded-lg focus:border-4 border-blue-300"
-            onClick={onRegister}
-          >
-            登録
-          </button>
-
-          <button
-            type="button"
-            className="p-2 pl-5 pr-5 bg-gray-500 text-gray-100 text-lg rounded-lg focus:border-4 border-gray-300"
-            onClick={onCancel}
-          >
-            キャンセル
-          </button>
-        </div>
-      </section>
-      <style jsx>{`
-        section {
-          position: absolute;
-          top: 0;
-          right: 0;
-          width: 50vw;
-          height: 100vh;
-          background-color: #fff;
-          z-index: 10;
-        }
-        div {
-          background-color: #fff;
-          height: 100px;
-          padding: 2rem;
-          z-index: 10;
-        }
-        button + button {
-          margin-left: 8px;
-        }
-      `}</style>
+      <Wrapper>
+        <form onSubmit={handleSubmit(onRegister)}>
+          <StyledFormControl isRequired>
+            <FormLabel>タイトル</FormLabel>
+            <Input type="text" {...register("title", { required: true })} />
+          </StyledFormControl>
+          <MarkdownEditor content={content} setContent={setContent} />
+          <Action>
+            <StyledButton type="submit">
+              {selectedPost === undefined ? "登録" : "更新"}
+            </StyledButton>
+            <StyledButton type="button" onClick={onCancel}>
+              キャンセル
+            </StyledButton>
+          </Action>
+        </form>
+      </Wrapper>
     </>
   );
 };
+
+const Wrapper = styled.div`
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 50vw;
+  height: 100vh;
+  background-color: #fff;
+  z-index: 10;
+`;
+
+const Action = styled.div`
+  display: flex;
+  justify-content: flex-end;
+  background-color: #fff;
+  height: 100px;
+  padding: 2rem;
+  z-index: 10;
+`;
+
+const StyledButton = styled(Button)`
+  & + & {
+    margin-left: 8px;
+  }
+`;
+
+const StyledFormControl = styled(FormControl)`
+  margin: 8px 0;
+`;
 
 export { RegisterPopup };
