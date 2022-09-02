@@ -6,8 +6,10 @@ import { MarkdownEditor } from "../markdown/MarkdownEditor";
 import styled from "@emotion/styled";
 import { useForm } from "react-hook-form";
 import { useMutationOnRegister } from "./hook/useMutationOnRegister";
+import { useQueryClient } from "@tanstack/react-query";
 
 type RegisterPopupProps = {
+  title?: string;
   position: LatLng;
   onCancel: () => void;
   content: string;
@@ -16,6 +18,7 @@ type RegisterPopupProps = {
 };
 
 const RegisterPopup: FC<RegisterPopupProps> = ({
+  title,
   position,
   onCancel,
   content,
@@ -25,31 +28,29 @@ const RegisterPopup: FC<RegisterPopupProps> = ({
   const { handleSubmit, register } = useForm();
   const [mutationCreate, mutationUpdate] = useMutationOnRegister(onCancel);
   const onRegister = useCallback(
-    (e) => {
-      (async () => {
-        if (!position) {
-          return;
+    async (e) => {
+      if (!position) {
+        return;
+      }
+      try {
+        if (selectedPost === undefined) {
+          await mutationCreate.mutateAsync({
+            title: e.title,
+            lat: position.lat,
+            lng: position.lng,
+            content,
+          });
+        } else {
+          await mutationUpdate.mutateAsync({
+            id: selectedPost.id,
+            title: e.title,
+            content,
+          });
         }
-        try {
-          if (selectedPost === undefined) {
-            await mutationCreate.mutateAsync({
-              title: e.title,
-              lat: position.lat,
-              lng: position.lng,
-              content,
-            });
-          } else {
-            await mutationUpdate.mutateAsync({
-              id: selectedPost.id,
-              title: e.title,
-              content,
-            });
-          }
-        } catch (error) {
-          console.error(error);
-          onCancel();
-        }
-      })();
+      } catch (error) {
+        console.error(error);
+        onCancel();
+      }
     },
     [position, onCancel, content, mutationCreate, mutationUpdate]
   );
@@ -59,7 +60,11 @@ const RegisterPopup: FC<RegisterPopupProps> = ({
         <form onSubmit={handleSubmit(onRegister)}>
           <StyledFormControl isRequired>
             <FormLabel>タイトル</FormLabel>
-            <Input type="text" {...register("title", { required: true })} />
+            <Input
+              type="text"
+              {...register("title", { required: true, value: title })}
+              defaultValue={title}
+            />
           </StyledFormControl>
           <MarkdownEditor content={content} setContent={setContent} />
           <Action>
